@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brizz – Szolgáltatás Kalkulátor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0f11;--bg2:#16181c;--bg3:#1e2127;--bg4:#252930;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--text:#f0f0ee;--text2:#9a9b9e;--text3:#5e5f63;--accent:#00d4a0;--amber:#f0b429;--red:#e84040;--radius:10px;--radius-lg:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
+.page{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-mark svg{width:18px;height:18px}
+.logo-text{font-size:18px;font-weight:600;letter-spacing:-0.02em}
+.logo-sub{font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;margin-top:1px}
+.tab-nav{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+.tab-btn{padding:8px 20px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;border:none;color:var(--text2);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-btn:hover:not(.active){color:var(--text)}
+.view-toggle{display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden}
+.view-btn{padding:7px 16px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;border:none;color:var(--text2);font-weight:500;transition:all 0.15s}
+.view-btn.active{background:var(--bg3);color:var(--text)}
+.reset-btn{font-size:12px;padding:6px 14px;border:1px solid var(--border2);border-radius:8px;background:transparent;cursor:pointer;color:var(--text2);font-family:'DM Sans',sans-serif;transition:all 0.15s}
+.reset-btn:hover{background:var(--bg3);color:var(--text)}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:1.5rem}
+.metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.metric-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px}
+.metric-value{font-size:22px;font-weight:500;font-family:'DM Mono',monospace}
+.metric-value.green{color:var(--accent)}.metric-value.amber{color:var(--amber)}.metric-value.red{color:var(--red)}
+.disc-row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);margin-bottom:1rem}
+.disc-row input[type=range]{-webkit-appearance:none;width:140px;height:3px;background:var(--bg4);border-radius:2px;outline:none}
+.disc-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
+.cat-block{border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:10px}
+.cat-header{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg2);font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em}
+.cat-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.col-heads{display:grid;align-items:center;padding:5px 16px;gap:8px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;background:var(--bg2);border-top:1px solid var(--border)}
+.service-item{display:grid;align-items:center;padding:10px 16px;gap:8px;border-top:1px solid var(--border);transition:background 0.1s}
+.service-item:hover{background:rgba(255,255,255,0.02)}
+input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--accent);flex-shrink:0}
+.name-col{font-size:13px;color:var(--text)}
+.sub-col{font-size:11px;color:var(--text3);margin-top:1px}
+.num-col{text-align:right;font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);white-space:nowrap}
+.price-col{text-align:right;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--text);white-space:nowrap}
+.gm-col{text-align:right;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;white-space:nowrap}
+.gm-good{color:var(--accent)}.gm-ok{color:var(--amber)}.gm-low{color:var(--red)}
+.role-badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;white-space:nowrap;margin-left:6px;vertical-align:middle}
+.role-leader{background:rgba(0,212,160,0.12);color:#00d4a0}
+.role-creative{background:rgba(155,120,240,0.15);color:#b09af5}
+.role-webdesigner{background:rgba(74,158,255,0.13);color:#7abcff}
+.role-marketinges{background:rgba(240,180,41,0.13);color:#f0b429}
+.role-pr{background:rgba(224,100,50,0.13);color:#f08050}
+.badge-adhoc{font-size:9px;padding:2px 6px;border-radius:20px;background:rgba(240,180,41,0.12);color:var(--amber);font-weight:500;margin-left:4px;vertical-align:middle}
+.adhoc-label{padding:5px 16px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;border-top:1px solid var(--border);background:rgba(255,255,255,0.01)}
+.footer-bar{margin-top:1.5rem;padding:18px 20px;border:1px solid var(--border2);border-radius:var(--radius-lg);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.footer-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
+.footer-total{font-size:28px;font-weight:500;font-family:'DM Mono',monospace;color:var(--text)}
+.footer-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.footer-gm-val{font-size:20px;font-weight:500;font-family:'DM Mono',monospace}
+.timestamp{margin-top:1.5rem;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;text-align:right}
+/* Settings */
+.settings-wrap{max-width:580px}
+.settings-section{margin-bottom:2rem}
+.settings-title{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:1rem;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.rate-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border)}
+.rate-row:last-child{border-bottom:none}
+.rate-left{display:flex;align-items:center;gap:10px}
+.rate-label{font-size:13px;color:var(--text)}
+.rate-sublabel{font-size:11px;color:var(--text3);margin-top:2px}
+.rate-input-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.rate-input{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);width:110px;text-align:right;outline:none;transition:border 0.15s}
+.rate-input:focus{border-color:var(--accent)}
+.rate-unit{font-size:12px;color:var(--text3);white-space:nowrap}
+.save-btn{margin-top:1.5rem;padding:9px 24px;background:var(--accent);color:#0e0f11;border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity 0.15s}
+.save-btn:hover{opacity:0.85}
+.save-confirm{font-size:12px;color:var(--accent);margin-left:12px;opacity:0;transition:opacity 0.4s;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="6" height="6" rx="1.5" fill="#0e0f11"/>
+        <rect x="10" y="2" width="6" height="6" rx="1.5" fill="#0e0f11"/>
+        <rect x="2" y="10" width="6" height="6" rx="1.5" fill="#0e0f11"/>
+        <rect x="10" y="10" width="6" height="6" rx="1.5" fill="#0e0f11" opacity="0.4"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">Brizz</div>
+      <div class="logo-sub">szolgáltatás kalkulátor</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap" id="topbar-controls">
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="setView('internal')">Belső nézet</button>
+      <button class="view-btn" onclick="setView('client')">Ügyfél nézet</button>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">↺ Visszaállít</button>
+  </div>
+</div>
+
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="setTab('kalkulator')">Kalkulátor</button>
+  <button class="tab-btn" onclick="setTab('settings')">⚙ Beállítások</button>
+</div>
+
+<!-- KALKULÁTOR TAB -->
+<div id="tab-kalkulator">
+  <div class="summary">
+    <div class="metric"><div class="metric-label">Végső ár (nettó)</div><div class="metric-value" id="s-price">0 Ft</div></div>
+    <div class="metric" id="m-cogs"><div class="metric-label">COGS</div><div class="metric-value" id="s-cogs">0 Ft</div></div>
+    <div class="metric" id="m-gm"><div class="metric-label">Gross Margin</div><div class="metric-value green" id="s-gm">–</div></div>
+    <div class="metric" id="m-hrs"><div class="metric-label">Tervezett órák</div><div class="metric-value" id="s-hrs">0 h</div></div>
+  </div>
+
+  <div class="disc-row" id="disc-row" style="display:none">
+    <span>Kedvezmény:</span>
+    <input type="range" min="0" max="30" step="1" value="0" id="disc-slider" oninput="onDiscount(this.value)">
+    <span id="disc-pct" style="min-width:28px;font-family:'DM Mono',monospace">0%</span>
+    <span id="disc-price" style="font-weight:500;color:var(--text);font-family:'DM Mono',monospace"></span>
+  </div>
+
+  <div id="services-container"></div>
+
+  <div class="footer-bar">
+    <div>
+      <div class="footer-label">Kiválasztott tételek végösszege</div>
+      <div class="footer-total" id="f-total">0 Ft</div>
+      <div class="footer-sub" id="f-sub"></div>
+    </div>
+    <div id="f-gm-block" style="display:none;text-align:right">
+      <div class="footer-label">Gross Margin</div>
+      <div class="footer-gm-val" id="f-gm-val"></div>
+    </div>
+  </div>
+  <div class="timestamp" id="ts"></div>
+</div>
+
+<!-- SETTINGS TAB -->
+<div id="tab-settings" style="display:none">
+  <div class="settings-wrap">
+    <div class="settings-section">
+      <div class="settings-title">Ügynökségi listaár (óradíj)</div>
+      <div class="rate-row">
+        <div class="rate-left">
+          <span class="role-badge role-leader">Brizz</span>
+          <div>
+            <div class="rate-label">Alap ügynökségi óradíj</div>
+            <div class="rate-sublabel">Óra alapú tételeknél ez az egységár az ügyfél felé</div>
+          </div>
+        </div>
+        <div class="rate-input-wrap">
+          <input type="number" class="rate-input" id="set-rate" value="15000" step="500">
+          <span class="rate-unit">Ft/h</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title">Belső COGS — szerepkörönkénti óraköltség</div>
+      <div class="rate-row">
+        <div class="rate-left">
+          <span class="role-badge role-leader">Ügynökség</span>
+          <div>
+            <div class="rate-label">Vezető / ügynökségi munka</div>
+            <div class="rate-sublabel">Stratégia, sales, PM, GHL, LinkedIn outreach</div>
+          </div>
+        </div>
+        <div class="rate-input-wrap">
+          <input type="number" class="rate-input" id="set-leader" value="8000" step="500">
+          <span class="rate-unit">Ft/h</span>
+        </div>
+      </div>
+      <div class="rate-row">
+        <div class="rate-left">
+          <span class="role-badge role-creative">Kreatív</span>
+          <div>
+            <div class="rate-label">Kreatív / videós / fotós</div>
+            <div class="rate-sublabel">Videó, fotó, motion, arculat, grafika</div>
+          </div>
+        </div>
+        <div class="rate-input-wrap">
+          <input type="number" class="rate-input" id="set-creative" value="8000" step="500">
+          <span class="rate-unit">Ft/h</span>
+        </div>
+      </div>
+      <div class="rate-row">
+        <div class="rate-left">
+          <span class="role-badge role-webdesigner">Web/Design</span>
+          <div>
+            <div class="rate-label">Webdesigner / fejlesztő</div>
+            <div class="rate-sublabel">Weboldal, landing page, UI/UX</div>
+          </div>
+        </div>
+        <div class="rate-input-wrap">
+          <input type="number" class="rate-input" id="set-webdesigner" value="8000" step="500">
+          <span class="rate-unit">Ft/h</span>
+        </div>
+      </div>
+      <div class="rate-row">
+        <div class="rate-left">
+          <span class="role-badge role-marketinges">Marketing</span>
+          <div>
+            <div class="rate-label">Marketinges (kiszervezett)</div>
+            <div class="rate-sublabel">Social media, email, copywriting feladatok</div>
+          </div>
+        </div>
+        <div class="rate-input-wrap">
+          <input type="number" class="rate-input" id="set-marketinges" value="3500" step="500">
+          <span class="rate-unit">Ft/h</span>
+        </div>
+      </div>
+      <div class="rate-row">
+        <div class="rate-left">
+          <span class="role-badge role-pr">PR</span>
+          <div>
+            <div class="rate-label">PR szakértő</div>
+            <div class="rate-sublabel">Sajtó, médiakapcsolatok, kommunikáció</div>
+          </div>
+        </div>
+        <div class="rate-input-wrap">
+          <input type="number" class="rate-input" id="set-pr" value="8000" step="500">
+          <span class="rate-unit">Ft/h</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="save-btn" onclick="saveSettings()">Mentés és frissítés</button>
+    <span class="save-confirm" id="save-confirm">✓ Elmentve — az árak frissültek</span>
+  </div>
+</div>
+
+</div>
+<script>
+const ROLE_META = {
+  leader:      { label:'Ügynökség', cls:'role-leader' },
+  creative:    { label:'Kreatív',   cls:'role-creative' },
+  webdesigner: { label:'Web/Design',cls:'role-webdesigner' },
+  marketinges: { label:'Marketing', cls:'role-marketinges' },
+  pr:          { label:'PR',        cls:'role-pr' },
+};
+
+let RATE = 15000;
+let COGS = { leader:8000, creative:8000, webdesigner:8000, marketinges:3500, pr:8000 };
+
+const services = [
+  { cat:"Web fejlesztés / AI web", color:"#00d4a0", items:[
+    { id:"w1",  name:"AI weboldalfejlesztés (5 oldalas)", sub:"Sablon-alapú AI build, alapszövegekkel", hrs:18, role:"webdesigner", adhoc:false },
+    { id:"w2",  name:"Egyedi weboldal fejlesztés", sub:"Teljesen egyedi design + fejlesztés", hrs:40, role:"webdesigner", adhoc:false },
+    { id:"w3",  name:"Landing page", sub:"Egyoldalas, konverzióra optimalizált", hrs:10, role:"webdesigner", adhoc:false },
+    { id:"w4a", name:"Weboldal karbantartás – AI web (havi)", sub:"Max 1 frissítés, alaphibajavítás", hrs:2, price_override:20000, role:"webdesigner", adhoc:false },
+    { id:"w4b", name:"Weboldal karbantartás – Egyedi (havi)", sub:"Max 1 frissítés, alaphibajavítás", hrs:2, price_override:40000, role:"webdesigner", adhoc:false },
+    { id:"w5",  name:"Extra aloldal hozzáadása", sub:"Meglévő oldalhoz 1 új aloldal", hrs:3, role:"webdesigner", adhoc:true },
+  ]},
+  { cat:"Brand identity / arculat", color:"#7b6ef6", items:[
+    { id:"b1", name:"Teljes arculati csomag", sub:"Logo, színpaletta, tipográfia, brand book", hrs:24, role:"creative", adhoc:false },
+    { id:"b2", name:"Logo tervezés", sub:"3 koncepció + 2 kör revízió", hrs:10, role:"creative", adhoc:false },
+    { id:"b3", name:"Visitenkártya / nyomtatvány", sub:"Design + nyomtatásra kész file", hrs:3, role:"creative", adhoc:true },
+    { id:"b4", name:"Céges PPT sablon", sub:"Egyedi diasablon, 10–15 dia", hrs:5, role:"creative", adhoc:true },
+    { id:"b5", name:"Banner / hirdetésgrafika csomag", sub:"5 méret, 2 verzió", hrs:4, role:"creative", adhoc:true },
+  ]},
+  { cat:"Videó & fotó produkció", color:"#ff6b3d", items:[
+    { id:"v1", name:"Céges bemutató videó", sub:"Forgatás + vágás + felirat, ~2 perc", hrs:20, role:"creative", adhoc:false },
+    { id:"v2", name:"Social media videócsomag (4 db)", sub:"Reel/Short formátum, vágás + grafika", hrs:12, role:"creative", adhoc:false },
+    { id:"v3", name:"Drone felvétel + vágás", sub:"Helyszíni felvétel, max 2h, szerkesztve", hrs:10, role:"creative", adhoc:false },
+    { id:"v4", name:"Céges fotózás (fél nap)", sub:"Helyszíni portré + lifestyle fotók", hrs:8, role:"creative", adhoc:false },
+    { id:"v5", name:"1 extra reel / short vágás", sub:"Meglévő anyagból", hrs:3, role:"creative", adhoc:true },
+    { id:"v6", name:"Thumbnail / borítókép csomag", sub:"5 db egyedi grafika", hrs:2, role:"creative", adhoc:true },
+  ]},
+  { cat:"Social media menedzsment", color:"#4a9eff", items:[
+    { id:"s0", name:"Social media alap – 4 poszt/hó", sub:"Ügyfél adja a contentet, grafika + feltöltés", hrs:4, price_override:50000, role:"marketinges", adhoc:false },
+    { id:"s1", name:"Social media alap – 8 poszt/hó", sub:"Szöveg + grafika + feltöltés, teljes menedzsment", hrs:10, price_override:100000, role:"marketinges", adhoc:false },
+    { id:"s2", name:"Social media haladó – 16 poszt/hó", sub:"16 poszt + story + hashtag stratégia", hrs:20, price_override:200000, role:"marketinges", adhoc:false },
+    { id:"s3", name:"Social media audit", sub:"Jelenlegi csatornák értékelése, javaslatok", hrs:4, role:"leader", adhoc:false },
+    { id:"s4", name:"1 extra poszt (grafika + szöveg)", sub:"Ad-hoc tartalom", hrs:1.5, role:"marketinges", adhoc:true },
+    { id:"s5", name:"Közösségkezelés (havi)", sub:"Kommentek, üzenetek, interakciók", hrs:6, role:"marketinges", adhoc:false },
+  ]},
+  { cat:"Copywriting / szövegírás", color:"#4cb96b", items:[
+    { id:"c1", name:"Weboldalszöveg (5 aloldal)", sub:"SEO-barát, brand voice szerint", hrs:10, role:"marketinges", adhoc:false },
+    { id:"c2", name:"Blog cikk (1 db, ~800–1200 szó)", sub:"Kulcsszókutatás + írás", hrs:3, role:"marketinges", adhoc:true },
+    { id:"c3", name:"Céges bemutató / about us szöveg", sub:"Brand story, missziós szöveg", hrs:3, role:"marketinges", adhoc:false },
+    { id:"c4", name:"Email sorozat (5 email)", sub:"Welcome / nurture sorozat", hrs:5, role:"marketinges", adhoc:false },
+    { id:"c5", name:"Hirdetésszöveg csomag", sub:"3 kampányhoz, több variáció", hrs:4, role:"marketinges", adhoc:true },
+  ]},
+  { cat:"PR", color:"#e0a020", items:[
+    { id:"p1", name:"PR stratégia kidolgozása", sub:"Célok, csatornák, üzenetek, naptár", hrs:8, role:"pr", adhoc:false },
+    { id:"p2", name:"Sajtóközlemény írás + terjesztés", sub:"Írás + médialista + kiküldés", hrs:5, role:"pr", adhoc:false },
+    { id:"p3", name:"Médiakapcsolat menedzsment (havi)", sub:"Újságírókapcsolatok, pitch-ek", hrs:8, role:"pr", adhoc:false },
+    { id:"p4", name:"Interjú / podcastfelkészítés", sub:"Üzenet, kérdések, coaching", hrs:3, role:"pr", adhoc:true },
+  ]},
+  { cat:"Sales rendszer / GHL", color:"#d45080", items:[
+    { id:"g1", name:"GHL alap beállítás", sub:"CRM, pipeline, alapautomatizálás", hrs:8, role:"leader", adhoc:false },
+    { id:"g2", name:"GHL teljes sales rendszer", sub:"Pipeline, email+SMS szekvencia, booking, lead form", hrs:20, role:"leader", adhoc:false },
+    { id:"g3", name:"Email/SMS automáció (1 sorozat)", sub:"Trigger-alapú, max 5 lépés", hrs:5, role:"leader", adhoc:true },
+    { id:"g4", name:"GHL havi karbantartás", sub:"Hibajavítás, optimalizálás, riportok", hrs:2, role:"leader", adhoc:false },
+    { id:"g5", name:"Foglalási rendszer beállítás", sub:"Naptár integráció, emlékeztetők", hrs:3, role:"leader", adhoc:true },
+  ]},
+  { cat:"LinkedIn menedzsment", color:"#2a7cc7", items:[
+    { id:"l1", name:"LinkedIn profil optimalizálás", sub:"Headline, about, tapasztalat, banner", hrs:3, role:"leader", adhoc:false },
+    { id:"l2", name:"LinkedIn tartalom – 8 poszt/hó", sub:"Poszt szöveg + grafika + időzítés", hrs:10, price_override:130000, role:"marketinges", adhoc:false },
+    { id:"l3", name:"LinkedIn outreach kampány", sub:"Céllista, üzenetsorozat, nyomon követés", hrs:8, role:"leader", adhoc:false },
+    { id:"l4", name:"LinkedIn audit", sub:"Profil + tartalom + aktivitás értékelése", hrs:2, role:"leader", adhoc:false },
+    { id:"l5", name:"1 extra LinkedIn poszt", sub:"", hrs:1, role:"marketinges", adhoc:true },
+  ]},
+  { cat:"Email marketing", color:"#3db876", items:[
+    { id:"e1", name:"Havi hírlevél menedzsment – 4 email", sub:"Szöveg + design + küldés + riport", hrs:5, price_override:40000, role:"marketinges", adhoc:false },
+    { id:"e2", name:"Cold email kampány – 8 hírlevél", sub:"Teljes sorozat, szöveg + design + kiküldés", hrs:8, price_override:100000, role:"marketinges", adhoc:false },
+    { id:"e3", name:"Email stratégia + lista felépítés", sub:"Szegmentálás, lead magnet, opt-in", hrs:6, role:"leader", adhoc:false },
+    { id:"e4", name:"Automáció felépítés (welcome / nurture)", sub:"3–7 lépéses sorozat", hrs:6, role:"leader", adhoc:false },
+    { id:"e5", name:"1 alkalmi kampánylevél", sub:"Design + szöveg + kiküldés", hrs:2, price_override:30000, role:"marketinges", adhoc:true },
+    { id:"e6", name:"Email lista tisztítás + szegmentálás", sub:"", hrs:2, role:"leader", adhoc:true },
+  ]},
+];
+
+let view = 'internal';
+let discount = 0;
+
+function fmt(n){ return Math.round(n).toLocaleString('hu-HU')+' Ft'; }
+function fmtClient(n){ return Math.round(n).toLocaleString('hu-HU')+',–'; }
+function fmtPct(n){ return Math.round(n)+'%'; }
+
+function calcItem(it){
+  const price = it.price_override !== undefined ? it.price_override : Math.round(it.hrs * RATE);
+  const cogs = Math.round(it.hrs * COGS[it.role]);
+  const gm = price > 0 ? Math.round((price-cogs)/price*100) : 0;
+  return { price, cogs, gm };
+}
+
+function gmClass(gm){ return gm>=60?'gm-good':gm>=45?'gm-ok':'gm-low'; }
+
+function roleBadge(role){
+  const r = ROLE_META[role];
+  return `<span class="role-badge ${r.cls}">${r.label}</span>`;
+}
+
+function getChecked(){
+  return services.flatMap(c=>c.items).filter(it=>{
+    const el=document.getElementById('chk-'+it.id);
+    return el&&el.checked;
+  });
+}
+
+function updateSummary(){
+  const checked=getChecked();
+  let totalPrice=0,totalCogs=0,totalHrs=0;
+  checked.forEach(it=>{ const c=calcItem(it); totalPrice+=c.price; totalCogs+=c.cogs; totalHrs+=it.hrs; });
+  const discPrice=Math.round(totalPrice*(1-discount/100));
+  const gm=totalPrice>0?Math.round((discPrice-totalCogs)/discPrice*100):null;
+
+  document.getElementById('s-price').textContent = view==='client'?fmtClient(discPrice):fmt(discPrice);
+  document.getElementById('s-cogs').textContent = fmt(totalCogs);
+  document.getElementById('s-hrs').textContent = totalHrs+' h';
+
+  const gmEl=document.getElementById('s-gm');
+  if(gm!==null){ gmEl.textContent=fmtPct(gm); gmEl.className='metric-value '+(gm>=60?'green':gm>=45?'amber':'red'); }
+  else { gmEl.textContent='–'; gmEl.className='metric-value green'; }
+
+  document.getElementById('f-total').textContent = view==='client'?fmtClient(discPrice):fmt(discPrice);
+  document.getElementById('disc-row').style.display = checked.length>0?'flex':'none';
+  document.getElementById('disc-price').textContent = discount>0?('→ '+(view==='client'?fmtClient(discPrice):fmt(discPrice))):'';
+
+  const sub=[];
+  if(view==='internal'&&totalCogs>0) sub.push('COGS: '+fmt(totalCogs));
+  if(totalHrs>0&&view==='internal') sub.push(totalHrs+' h');
+  if(checked.length>0&&view!=='internal') sub.push(checked.length+' tétel');
+  document.getElementById('f-sub').textContent=sub.join(' · ');
+
+  const fGmBlock=document.getElementById('f-gm-block');
+  if(view==='internal'&&gm!==null){
+    fGmBlock.style.display='';
+    const fgv=document.getElementById('f-gm-val');
+    fgv.textContent=fmtPct(gm);
+    fgv.style.color=gm>=60?'var(--accent)':gm>=45?'var(--amber)':'var(--red)';
+  } else { fGmBlock.style.display='none'; }
+
+  const now=new Date();
+  document.getElementById('ts').textContent='Frissítve: '+now.toLocaleDateString('hu-HU')+' '+now.toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'});
+}
+
+function onDiscount(val){
+  discount=parseInt(val);
+  document.getElementById('disc-pct').textContent=val+'%';
+  updateSummary();
+}
+
+function buildInternal(){
+  let html='';
+  services.forEach(cat=>{
+    const main=cat.items.filter(i=>!i.adhoc);
+    const adhoc=cat.items.filter(i=>i.adhoc);
+    html+=`<div class="cat-block">
+      <div class="cat-header"><div class="cat-dot" style="background:${cat.color}"></div>${cat.cat}</div>
+      <div class="col-heads" style="grid-template-columns:20px 1fr 52px 90px 80px 55px">
+        <span></span><span>Szolgáltatás</span><span style="text-align:right">Órák</span><span style="text-align:right">Listaár</span><span style="text-align:right">COGS</span><span style="text-align:right">GM%</span>
+      </div>`;
+    const renderRow=(it)=>{
+      const c=calcItem(it);
+      const fix=it.price_override!==undefined?'<span style="font-size:9px;color:var(--text3);margin-left:3px">fix ár</span>':'';
+      const adhocBadge=it.adhoc?'<span class="badge-adhoc">ad-hoc</span>':'';
+      html+=`<div class="service-item" style="grid-template-columns:20px 1fr 52px 90px 80px 55px">
+        <div><input type="checkbox" id="chk-${it.id}" onchange="updateSummary()"></div>
+        <div>
+          <div class="name-col">${it.name}${adhocBadge}${fix}${roleBadge(it.role)}</div>
+          <div class="sub-col">${it.sub}</div>
+        </div>
+        <div class="num-col">${it.hrs} h</div>
+        <div class="price-col">${fmt(c.price)}</div>
+        <div class="num-col">${fmt(c.cogs)}</div>
+        <div class="${gmClass(c.gm)} gm-col">${fmtPct(c.gm)}</div>
+      </div>`;
+    };
+    main.forEach(renderRow);
+    if(adhoc.length){
+      html+=`<div class="adhoc-label">À la carte / ad-hoc</div>`;
+      adhoc.forEach(renderRow);
+    }
+    html+=`</div>`;
+  });
+  return html;
+}
+
+function buildClient(){
+  let html='';
+  services.forEach(cat=>{
+    const main=cat.items.filter(i=>!i.adhoc);
+    const adhoc=cat.items.filter(i=>i.adhoc);
+    html+=`<div class="cat-block">
+      <div class="cat-header"><div class="cat-dot" style="background:${cat.color}"></div>${cat.cat}</div>
+      <div class="col-heads" style="grid-template-columns:20px 1fr 110px">
+        <span></span><span>Szolgáltatás</span><span style="text-align:right">Nettó ár</span>
+      </div>`;
+    const renderRow=(it)=>{
+      const c=calcItem(it);
+      html+=`<div class="service-item" style="grid-template-columns:20px 1fr 110px">
+        <div><input type="checkbox" id="chk-${it.id}" onchange="updateSummary()"></div>
+        <div><div class="name-col">${it.name}</div><div class="sub-col">${it.sub}</div></div>
+        <div class="price-col">${fmtClient(c.price)}</div>
+      </div>`;
+    };
+    main.forEach(renderRow);
+    if(adhoc.length){
+      html+=`<div class="adhoc-label">À la carte / egyedi tételek</div>`;
+      adhoc.forEach(renderRow);
+    }
+    html+=`</div>`;
+  });
+  return html;
+}
+
+function setView(v){
+  view=v;
+  document.querySelectorAll('.view-btn').forEach(b=>{
+    b.classList.toggle('active',(v==='internal'&&b.textContent.includes('Belső'))||(v==='client'&&b.textContent.includes('Ügyfél')));
+  });
+  const states={};
+  document.querySelectorAll('input[type=checkbox]').forEach(el=>{ states[el.id]=el.checked; });
+  document.getElementById('services-container').innerHTML=v==='internal'?buildInternal():buildClient();
+  Object.entries(states).forEach(([id,checked])=>{ const el=document.getElementById(id); if(el) el.checked=checked; });
+  ['m-cogs','m-gm','m-hrs'].forEach(id=>{ document.getElementById(id).style.display=v==='internal'?'':'none'; });
+  updateSummary();
+}
+
+function setTab(tab){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===(tab==='kalkulator'?0:1)));
+  document.getElementById('tab-kalkulator').style.display=tab==='kalkulator'?'':'none';
+  document.getElementById('tab-settings').style.display=tab==='settings'?'':'none';
+  document.getElementById('topbar-controls').style.display=tab==='kalkulator'?'':'none';
+}
+
+function saveSettings(){
+  RATE = parseInt(document.getElementById('set-rate').value)||RATE;
+  COGS.leader = parseInt(document.getElementById('set-leader').value)||COGS.leader;
+  COGS.creative = parseInt(document.getElementById('set-creative').value)||COGS.creative;
+  COGS.webdesigner = parseInt(document.getElementById('set-webdesigner').value)||COGS.webdesigner;
+  COGS.marketinges = parseInt(document.getElementById('set-marketinges').value)||COGS.marketinges;
+  COGS.pr = parseInt(document.getElementById('set-pr').value)||COGS.pr;
+
+  const states={};
+  document.querySelectorAll('input[type=checkbox]').forEach(el=>{ states[el.id]=el.checked; });
+  document.getElementById('services-container').innerHTML=view==='internal'?buildInternal():buildClient();
+  Object.entries(states).forEach(([id,checked])=>{ const el=document.getElementById(id); if(el) el.checked=checked; });
+  updateSummary();
+
+  const conf=document.getElementById('save-confirm');
+  conf.style.opacity='1';
+  setTimeout(()=>conf.style.opacity='0',2500);
+}
+
+function resetAll(){
+  document.querySelectorAll('input[type=checkbox]').forEach(el=>el.checked=false);
+  discount=0;
+  const ds=document.getElementById('disc-slider');
+  if(ds) ds.value=0;
+  document.getElementById('disc-pct').textContent='0%';
+  document.getElementById('disc-price').textContent='';
+  updateSummary();
+}
+
+setView('internal');
+</script>
+</body>
+</html>
